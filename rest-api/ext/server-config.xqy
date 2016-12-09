@@ -35,7 +35,7 @@ function ext:get(
       "database": xdmp:database-name(xdmp:database())
     }
   let $stored-config as object-node() :=
-    (fn:doc("/discovery-app/config/server-config.json")/object-node()/object-node("server-config"), object-node{})[1]
+    (fn:doc("/ml-slush-discovery-app-HFT/config/server-config.json")/object-node()/object-node("server-config"), object-node{})[1]
   let $combined-config :=
     if (fn:empty($stored-config/database[.])) then
       $stored-config + $default-config

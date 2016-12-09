@@ -1,0 +1,85 @@
+<div class="col-sm-12 detail">
+  <div class="col-sm-8">
+    <div class="clearfix margin-bottom-sm">
+      <div class="col-md-2">
+        <search-image class="pull-left" doc-type="ctrl.binaryContentType || ctrl.contentType" image-type="'details'"></search-image>
+        <div class="col-sm-12">
+          <a ng-if="ctrl.binaryFilePath" target="_blank" ng-href="/v1/documents?uri={{ctrl.binaryFilePath}}&transform=download" class="btn btn-primary"><span class="glyphicon glyphicon-cloud-download">&nbsp;</span> Download</a>
+        </div>
+      </div>
+      <div class="col-md-10">
+        <div class="col-md-12"><h3>{{ ctrl.uri }}</h3></div>
+        <div class="col-md-6" ng-repeat="metablock in ctrl.metaHighlights">
+          <dl>
+            <dt class="row" ng-repeat-start="(key, val) in metablock">{{key}}</dt>
+            <dd class="col-md-12" ng-repeat-end>{{val}}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <uib-tabset active="ctrl.defaultTab" type="pills">
+        <uib-tab ng-show="ctrl.html">
+          <uib-tab-heading>Display</uib-tab-heading>
+          <div class="col-sm-10">
+            <div>
+              <div ng-if="ctrl.meta.length" class="alert alert-info col-md-12">
+                <div class="col-md-6" ng-repeat="metablock in ctrl.meta">
+                  <dl>
+                    <dt class="row" ng-repeat-start="(key, val) in metablock">{{key}}</dt>
+                    <dd class="col-md-12" ng-repeat-end>{{val}}</dd>
+                  </dl>
+                </div>
+              </div>
+              <div class="clearfix" ng-bind-html="ctrl.html"></div>
+            </div>
+          </div>
+        </uib-tab>
+        <uib-tab ng-show="ctrl.binaryType && ctrl.binaryType !== 'other'">
+          <uib-tab-heading>Binary Preview</uib-tab-heading>
+          <div class="col-sm-10">
+            <div>
+              <div ng-if="ctrl.binaryType === 'pdf'">
+                <object data="/v1/documents?uri={{ctrl.binaryFilePath}}&format=binary" content-type="{{ctrl.binaryContentType}}" class="preview-binary"></object>
+              </div>
+              <div ng-if="ctrl.binaryType === 'image'">
+                <img ng-src="/v1/documents?uri={{ctrl.binaryFilePath}}&format=binary" />
+              </div>
+            </div>
+          </div>
+        </uib-tab>
+        <uib-tab>
+          <uib-tab-heading>JSON</uib-tab-heading>
+          <div class="col-sm-10">
+            <div>
+              <json-explorer data="ctrl.json"></json-explorer>
+            </div>
+          </div>
+        </uib-tab>
+        <uib-tab>
+          <uib-tab-heading>XML</uib-tab-heading>
+          <div class="col-sm-10" hljs hljs-no-escape hljs-source="ctrl.xml"></div>
+        </uib-tab>
+      </uib-tabset>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <!-- show (links to) similar documents -->
+    <div class="panel panel-default">
+      <div class="panel-heading">Similar</div>
+      <div class="panel-body">
+        <ml-similar uri="{{ctrl.uri}}" limit="5"></ml-similar>
+      </div>
+    </div>
+    <uib-accordion ng-repeat="pageExtension in ctrl.pageExtensions" close-others="false" ng-show="pageExtension.active" ng-init="pageExtension.open = true">
+      <uib-accordion-group is-open="pageExtension.open">
+        <uib-accordion-heading>
+          <strong>{{pageExtension.name}}</strong>
+          <a class="pull-right"><span class="glyphicon" ng-class="{'glyphicon-chevron-down': pageExtension.open, 'glyphicon-chevron-right': !pageExtension.open}"></span></a>
+        </uib-accordion-heading>
+        <div compile="pageExtension.html">
+        </div>
+      </uib-accordion-group>
+    </uib-accordion>
+  </div>
+</div>

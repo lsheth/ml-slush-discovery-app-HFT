@@ -8,6 +8,9 @@ require 'lib/RoxyHttp'
 # the examples below for more information.
 #
 class ServerConfig
+  def role
+    @properties['ml.app-name'] + "-role"
+  end
 
   #
   # You can easily "override" existing methods with your own implementations.
@@ -69,6 +72,88 @@ class ServerConfig
   #   # This method is static and thus cannot access private variables
   #   # but it can be called without an environment
   # end
+def deploy_rawdata
+
+  
+       arguments_rawdata = %W{
+       import -mode local
+      -input_file_path data/AAPL_1M_CSV.csv
+      -input_file_type delimited_text
+      -delimited_uri_id Key
+      -delimited_root_name Raw_data
+      -output_uri_prefix /Raw_data/
+      -output_collections Raw_data
+      -transform_module /transform/Rawdata-transform.xqy
+      -transform_namespace http://marklogic.com/transform/rawdata      
+      -transform_function transform
+      -output_permissions
+      #{role},read,#{role},update,#{role},insert,#{role},execute
+      }
+      mlcp(arguments_rawdata)
+end
+
+def mlcp(arguments)
+    mlcp_home = @properties['ml.mlcp-home']
+    if @properties['ml.mlcp-home'] == nil || ! File.directory?(File.expand_path(mlcp_home)) || ! File.exists?(File.expand_path("#{mlcp_home}/bin/mlcp.sh"))
+      raise "MLCP not found or mis-configured, please check the mlcp-home setting."
+    end
+
+    # Find all jars required for running MLCP. At least:
+    jars = Dir.glob(ServerConfig.expand_path("#{mlcp_home}/lib/*.jar"))
+    classpath = jars.join(path_separator)
+
+    arguments.each_with_index do |arg, index|
+      if arg == "-option_file"
+        # remove flag from arguments
+        arguments.slice!(index)
+
+        # capture and remove value from arguments
+        option_file = arguments[index]
+        arguments.slice!(index)
+
+        # find and read file if exists
+        option_file = ServerConfig.expand_path("#{@@path}/#{option_file}")
+        if File.exist? option_file
+          logger.debug "Reading options file #{option_file}.."
+          options = File.read option_file
+
+          # substitute properties
+          @properties.sort {|x,y| y <=> x}.each do |k, v|
+            options.gsub!("@#{k}", v)
+          end
+
+          logger.debug "Options after resolving properties:"
+          lines = options.split(/[\n\r]+/).reject { |line| line.empty? || line.match("^#") }
+
+          lines.each do |line|
+            logger.debug line
+          end
+
+          # and insert the properties back into arguments
+          arguments[index,0] = lines
+        else
+          raise "Option file #{option_file} not found."
+        end
+      end
+    end
+
+    @ml_username = @properties['ml.mlcp-user'] || @properties['ml.user']
+    @ml_password = @properties['ml.mlcp-password'] || @ml_password
+    if arguments.length > 0
+      password_prompt
+      connection_string = %Q{ -username #{@ml_username} -password #{@ml_password} -host #{@properties['ml.server']} -port #{@properties['ml.xcc-port']}}
+
+      runme = %Q{java -cp "#{classpath}" #{@properties['ml.mlcp-vmargs']} com.marklogic.contentpump.ContentPump #{arguments.join(' ')} #{connection_string}}
+    else
+      runme = %Q{java -cp "#{classpath}" com.marklogic.contentpump.ContentPump}
+    end
+
+    logger.info runme
+    logger.info ""
+    system runme
+    logger.info ""
+end  
+
 end
 
 #

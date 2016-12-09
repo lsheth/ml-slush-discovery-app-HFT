@@ -30,8 +30,8 @@ module.exports = function() {
 
   var config = {
     marklogic: {
-      version: 8,
-      host: 'localhost',
+      version: 9,
+      host: 'alliances.demo.marklogic.com',
       manageHttpPort: '8002',
       httpPort: '8040',
       xccPort: '8041',

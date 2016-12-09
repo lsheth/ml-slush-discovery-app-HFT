@@ -11,7 +11,7 @@ var authHelper = require('./auth-helper');
 var options = require('./options');
 
 var serverConfigObj = {
-  database: null
+  database: 'ml-slush-discovery-app-HFT-content'
 };
 
 var _hostName;
@@ -23,6 +23,7 @@ serverConfig().then(function(sConfig) {
     console.log(sConfig);
     console.log('database: ' + sConfig.database);
     serverConfigObj = sConfig;
+    serverConfigObj.database = serverConfigObj.database || 'ml-slush-discovery-app-HFT-content';
   } else {
     console.log('config not found!');
   }
@@ -65,8 +66,8 @@ function genericConfig(name, req, res, data) {
   var opt = {
     method: 'GET',
     params: {
-      uri: '/discovery-app/config/' + name + '.json',
-      database: null
+      uri: '/ml-slush-discovery-app-HFT/config/' + name + '.json',
+      database: 'ml-slush-discovery-app-HFT-content'
     },
     path: '/v1/documents'
   };
@@ -89,7 +90,7 @@ function getServerConfig(req, res) {
   var opt = {
     method: 'GET',
     params: {
-      database: null
+       database: null
     },
     path: '/v1/resources/server-config'
   };
